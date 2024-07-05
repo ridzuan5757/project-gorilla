@@ -105,7 +105,9 @@ automatically filter pods by the node the processor is running on, the following
 requirements need to be cleared:
 
 Use the downward API to inject the node name as an environment variable. Add the
-following snippet under the pod env section of the Opentelemetry container:
+following snippet under the pod env section of the Opentelemetry container. This
+will inject a new environment variable to the Opentelemetry container with the
+value as the name of the node the pod was scheduled to run on.
 
 ```yaml
 spec:
@@ -118,5 +120,20 @@ spec:
           fieldPath: spec.nodeName
 ```
 
+Set the `filter.node_from_env_var` value to the name of the environment variable
+holding the node name. This will restrict each OpenTelemetry agent to query pods
+running on the same node only, reducing resource requirements for very large
+clusters.
 
+```yaml
+k8sattributes:
+    filter:
+        node_from_env_var: kUBE_NODE_NAME
+```
+
+
+
+Tasks:
+- Opentelemetry DaemonSet node name environment export.
+- Opentelemetry k8s attribute processor node filter.
 
