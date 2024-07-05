@@ -131,9 +131,36 @@ k8sattributes:
         node_from_env_var: kUBE_NODE_NAME
 ```
 
+### As a gateway
 
+When running as a gateway, the processor cannot correctly detect the IP address
+of the pods generating the telemetry data without any of the well-known IP
+attributes, when it receives them from an agent instead of receiving them
+directly from the pods. To workaround this issue, agents deployed with this
+processor can be configured to detect the IP addresses and forward them along
+with the telemetry data resources.
+
+Collector can then match this IP address with the `k8s` pods and enrich the
+records with the metadata. In order to set this up, the following requirements
+need to be cleared:
+
+Setup agents in passthrough mode by configuring the agents' processor value to
+true. This will ensure that the agents detect the IP address as add it as an
+attribute to all telemetry resources. Agents will not make any `k8s` API calls,
+do nay discovery pods or extract any metadata.
+
+```yaml
+k8sattributes:
+    passthrough: true
+```
+
+Configure the collector as usual. No special configuration changes ar eneeded to
+be made on the collector. It will automatically detect the IP address of spans,
+logs and metrics sent by the agents as well as directly by other services or
+pods.
 
 Tasks:
 - Opentelemetry DaemonSet node name environment export.
 - Opentelemetry k8s attribute processor node filter.
+- Opentelemetry k8s attribute processer passthrough configuration.
 
