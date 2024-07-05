@@ -33,5 +33,90 @@ logs using the kubernetes labels and kuberentes annotations we have added to the
 pods and namespaces.
 
 ```yaml
-
+k8sattributes:
+  auth_type: 'serviceAccount'
+  extract:
+    metadata: # extracted from the pod
+      - k8s.namespace.name
+      - k8s.pod.name
+      - k8s.pod.start_time
+      - k8s.pod.uid
+      - k8s.deployment.name
+      - k8s.node.name
+    annotations:
+      # Extracts the value of a pod annotation with key `annotation-one` and inserts it as a resource attribute with key `a1`
+      - tag_name: a1
+        key: annotation-one
+        from: pod
+      # Extracts the value of a namespaces annotation with key `annotation-two` with regexp and inserts it as a resource  with key `a2`
+      - tag_name: a2
+        key: annotation-two
+        regex: field=(?P<value>.+)
+        from: namespace
+    labels:
+      # Extracts the value of a namespaces label with key `label1` and inserts it as a resource attribute with key `l1`
+      - tag_name: l1
+        key: label1
+        from: namespace
+      # Extracts the value of a pod label with key `label2` with regexp and inserts it as a resource attribute with key `l2`
+      - tag_name: l2
+        key: label2
+        regex: field=(?P<value>.+)
+        from: pod
+  pod_association: # How to associate the data to a pod (order matters)
+    - sources: # First try to use the value of the resource attribute k8s.pod.ip
+        - from: resource_attribute
+          name: k8s.pod.ip
+    - sources: # Then try to use the value of the resource attribute k8s.pod.uid
+        - from: resource_attribute
+          name: k8s.pod.uid
+    - sources: # If neither of those work, use the request's connection to get the pod IP.
+        - from: connection
 ```
+
+There are also special configuration options for when the collector is deployed
+as kubernetes daemonset or as deployment gateway.
+
+## Deployment Scenarios
+
+The processor can be used in collectos deployed both as:
+- `DaemonSet` agent
+- `Deployment` gateway
+
+### As an agent
+
+When running as an agent, the processor detects IP addresses of pods sending
+spans, metrics or logs to the agent and uses this information to extract
+metadata from pods.
+
+When running as an agent, it is important to apply a discovery filter so that
+the processor only discover pods from the same host that it is running on. Not
+using such a filter can result in unnecessary resource usage especially on very
+large clusters. Once the filter is applied, each processor will only query the
+`k8s` API for pods running on it's own node.
+
+Node filter can be applied by setting the `filter.node` config option to the
+name of a `k8s` node. While this works as expected, it cannot be used to
+automatically filter pods by the same node that the processor is running on in
+most cases as it is not know beforehand which node a pod will be scheduled on.
+
+However, `k8s` has a solution for this called ***downward API***. To
+automatically filter pods by the node the processor is running on, the following
+requirements need to be cleared:
+
+Use the downward API to inject the node name as an environment variable. Add the
+following snippet under the pod env section of the Opentelemetry container:
+
+```yaml
+spec:
+  containers:
+  - env:
+    - name: KUBE_NODE_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: spec.nodeName
+```
+
+
+
