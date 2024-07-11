@@ -6,7 +6,7 @@
 |`Deployment` gateway|Will cause duplicate data when there is more than 1 replica.|
 
 The Kubernetes Cluster Receiver collects metrics and entity events about the
-clsuter as a wholel using the `k8s` API server. This receiver will be used to
+cluster as a whole using the `k8s` API server. This receiver will be used to
 monitor:
 - Pod phases
 - Node conditions
@@ -17,7 +17,7 @@ instance of the receiver is needed across the cluster in order to collect all
 the data.***
 
 There are different method of authentication, but typically `ServiceAccount` is
-used. The `ServiceAccount` also needs proper permissions to pull data from the
+used. The `ServiceAccount` also require permissions to pull data from the
 `k8s` API server.
 
 ```yaml

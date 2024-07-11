@@ -29,7 +29,7 @@ The following attributes are added by default:
 - `k8s.node.name`
 
 This processor can also set custom resource attributes for traces, metrics and
-logs using the kubernetes labels and kuberentes annotations we have added to the
+logs using the kubernetes labels and kubernetes annotations we have added to the
 pods and namespaces.
 
 ```yaml
@@ -43,7 +43,7 @@ k8sattributes:
       - k8s.pod.uid
       - k8s.deployment.name
       - k8s.node.name
-    annotations:
+     :
       # Extracts the value of a pod annotation with key `annotation-one` and inserts it as a resource attribute with key `a1`
       - tag_name: a1
         key: annotation-one
@@ -79,7 +79,7 @@ as kubernetes daemonset or as deployment gateway.
 
 ## Deployment Scenarios
 
-The processor can be used in collectos deployed both as:
+The processor can be used in collector deployed both as:
 - `DaemonSet` agent
 - `Deployment` gateway
 
@@ -91,8 +91,8 @@ metadata from pods.
 
 When running as an agent, it is important to apply a discovery filter so that
 the processor only discover pods from the same host that it is running on. Not
-using such a filter can result in unnecessary resource usage especially on very
-large clusters. Once the filter is applied, each processor will only query the
+using such a filter can result in unnecessary resource usage especially on huge
+clusters. Once the filter is applied, each processor will only query the
 `k8s` API for pods running on it's own node.
 
 Node filter can be applied by setting the `filter.node` config option to the
@@ -154,7 +154,7 @@ k8sattributes:
     passthrough: true
 ```
 
-Configure the collector as usual. No special configuration changes ar eneeded to
+Configure the collector as usual. No special configuration changes are needed to
 be made on the collector. It will automatically detect the IP address of spans,
 logs and metrics sent by the agents as well as directly by other services or
 pods.
