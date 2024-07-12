@@ -2,11 +2,11 @@
 
 |***Deployment Pattern***|***Usable***|
 |---|---|
-|`DaemonSet` agent|Preferred|
+|`DaemonSet` agent|yes|
 |`Deployment` gateway|Yes, but will only collect metrics from the node it is deployed on|
 
-Each `k8s` node runs akubelet that includes an API server. This receiver
-connects to that kbuelet via the API server to collect metrics about the node
+Each `k8s` node runs a kubelet that includes an API server. This receiver
+connects to that kubelet via the API server to collect metrics about the node
 and the workloads running on the node.
 
 There are method of authentication to the API server will be based on
@@ -136,7 +136,8 @@ metadata:
   name: otel-collector
 rules:
   - apiGroups: [""]
-    resources: ["nodes/stats"]
+    resources:
+      - "nodes/stats"
     verbs: ["get"]
     
   # Only needed if you are using extra_metadata_labels or

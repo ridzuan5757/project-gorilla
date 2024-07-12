@@ -12,7 +12,7 @@ logs from `k8s`.
 This receiver is composed of operators that are chained together to process a
 log. Each operator performs a simple responsibility, such as parsing a timestamp
 or JSON. Since `k8s` logs normally fit a set of standard formats, a typical
-configuration will looks like:
+configuration will look like:
 
 ```yaml
 filelog:

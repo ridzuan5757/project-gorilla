@@ -13,7 +13,7 @@ instance of the receiver is needed across the cluster in order to collect all
 the data***.
 
 Currently only a `ServiceAccount` can be used for authentication. For objects
-configuring for *pulling*, the receiver will use the `k8s` API to periodically
+configured for *pulling*, the receiver will use the `k8s` API to periodically
 list all the objects in the cluster. Each object will be converted to its own
 log. For objects configured for *watching*, the receiver creates a stream with
 the `k8s` API and which receives updates as the objects change.
@@ -28,7 +28,7 @@ The result might appear as shown below:
 
 ```bash
 kubectl api-resources
-NAME                              SHORTNAMES   APIVERSION                             NAMESPACED   KIND
+NAME                              SHORTNAMES   APIVERSION       NAMESPACED   KIND
 bindings                                       v1                                     true         Binding
 componentstatuses                 cs           v1                                     false        ComponentStatus
 configmaps                        cm           v1                                     true         ConfigMap

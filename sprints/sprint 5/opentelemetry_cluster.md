@@ -8,8 +8,7 @@ To collect all of this data, we will use the ***OpenTelemetry Collector***. The
 collector has many different tools at its disposal which allow it to efficiently
 collect all this data and enchance it in meaningful ways.
 
-To collect all the data, we will need ***two installations*** of the collector,
-one as a `DaemonSet` and one as a `Deployment`.
+To collect all the data, we will need ***two installations*** of the collector, `DaemonSet` and `Deployment`.
 - The `Daemonset` installation of the collector will be used to collect
   telemetry emitted by services, logs, and metrics for `nodes`, `pods` and
   `containers`.

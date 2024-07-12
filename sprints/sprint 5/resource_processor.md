@@ -6,7 +6,7 @@ The attributes processor modifies attributes of span, log, or metric. This
 processor also supports the ability to filter and match input data to determine
 if they should be included or excluded for specific actions. 
 
-It takes a list of actions which are performed in order specified in the config.
+It takes a list of actions which are performed in order as per specified in the config.
 The supported actions are:
 - `insert` will inserts a new attribute in input data where the key does not
   already exist.
