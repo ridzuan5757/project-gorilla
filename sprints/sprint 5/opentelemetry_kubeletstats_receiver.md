@@ -148,6 +148,7 @@ rules:
 ```
 
 Task:
+- Implementation of kubeletstats Receiver on OpenTelemetryCollector DaemonSet
 - `ServiceAccount` for Kubeletstats Receiver.
 - `ClusterRole` for KubeletStats Receiver.
 - `ClusterRoleBinding` for KubeletStats Receiver.

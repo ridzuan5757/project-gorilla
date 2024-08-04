@@ -1,10 +1,8 @@
-# Kubernetes Attributes Processor
+# Kubernetes Attributes Processor for OpenTelemetry Collector
 
-|***Deployment Pattern***|***Usable***|
-|---|---|
-|DaemonSet agent|Yes|
-|Deployment gateway|Yes|
-|Sidecar|No|
+This document outlines the design for implementing Kubernetes Attributes Processor in the OpenTelemetry Collector that will be deployed in the Proactive Monitoring Infrastructure.
+
+# Overview
 
 The Kubernetes Attributes Processor automatically discovers kubernetes pods,
 extract their metadata, and adds the extracted metadata to spans, metrics, and
@@ -20,6 +18,15 @@ defauly, data passing through the processor is associated to a pod via the
 incoming request's IP address, but different rules can be configured. Since the
 processor uses the kubernetes API, a role permission would be required.
 
+# Motivation
+The implementation of Kubernetes Attributes processor will:
+- Interact with the Kubernetes API to fetch metadata about pods, nodes, and other Kubernetes resources
+- Enrich incoming telemetry data with relevant Kubernetes attributes
+- Provide flexible configuration options for customization
+- Implement efficient caching mechanisms to optimize performance and reduce API calls
+- Support various authentication methods for Kubernetes API access
+
+# Specification
 The following attributes are added by default:
 - `k8s.namespace.name`
 - `k8s.pod.name`
@@ -27,55 +34,6 @@ The following attributes are added by default:
 - `k8s.pod.start_time`
 - `k8s.deployment.name`
 - `k8s.node.name`
-
-This processor can also set custom resource attributes for traces, metrics and
-logs using the kubernetes labels and kubernetes annotations we have added to the
-pods and namespaces.
-
-```yaml
-k8sattributes:
-  auth_type: 'serviceAccount'
-  extract:
-    metadata: # extracted from the pod
-      - k8s.namespace.name
-      - k8s.pod.name
-      - k8s.pod.start_time
-      - k8s.pod.uid
-      - k8s.deployment.name
-      - k8s.node.name
-     :
-      # Extracts the value of a pod annotation with key `annotation-one` and inserts it as a resource attribute with key `a1`
-      - tag_name: a1
-        key: annotation-one
-        from: pod
-      # Extracts the value of a namespaces annotation with key `annotation-two` with regexp and inserts it as a resource  with key `a2`
-      - tag_name: a2
-        key: annotation-two
-        regex: field=(?P<value>.+)
-        from: namespace
-    labels:
-      # Extracts the value of a namespaces label with key `label1` and inserts it as a resource attribute with key `l1`
-      - tag_name: l1
-        key: label1
-        from: namespace
-      # Extracts the value of a pod label with key `label2` with regexp and inserts it as a resource attribute with key `l2`
-      - tag_name: l2
-        key: label2
-        regex: field=(?P<value>.+)
-        from: pod
-  pod_association: # How to associate the data to a pod (order matters)
-    - sources: # First try to use the value of the resource attribute k8s.pod.ip
-        - from: resource_attribute
-          name: k8s.pod.ip
-    - sources: # Then try to use the value of the resource attribute k8s.pod.uid
-        - from: resource_attribute
-          name: k8s.pod.uid
-    - sources: # If neither of those work, use the request's connection to get the pod IP.
-        - from: connection
-```
-
-There are also special configuration options for when the collector is deployed
-as kubernetes daemonset or as deployment gateway.
 
 ## Deployment Scenarios
 
@@ -109,27 +67,15 @@ following snippet under the pod env section of the Opentelemetry container. This
 will inject a new environment variable to the Opentelemetry container with the
 value as the name of the node the pod was scheduled to run on.
 
-```yaml
-spec:
-  containers:
-  - env:
-    - name: KUBE_NODE_NAME
-      valueFrom:
-        fieldRef:
-          apiVersion: v1
-          fieldPath: spec.nodeName
-```
-
 Set the `filter.node_from_env_var` value to the name of the environment variable
 holding the node name. This will restrict each OpenTelemetry agent to query pods
 running on the same node only, reducing resource requirements for very large
 clusters.
 
-```yaml
-k8sattributes:
-    filter:
-        node_from_env_var: kUBE_NODE_NAME
-```
+|Manifest File|Name|Injected Value|
+|---|---|---|
+|`deployment`|`KUBE_NODE_NAME`|`spec.nodeName`|
+|`configmap`|`k8sattributes.filter.node_fromm_env_var`|`${env: KUBE_NODE_NAME}`|
 
 ### As a gateway
 
@@ -149,15 +95,9 @@ true. This will ensure that the agents detect the IP address as add it as an
 attribute to all telemetry resources. Agents will not make any `k8s` API calls,
 do nay discovery pods or extract any metadata.
 
-```yaml
-k8sattributes:
-    passthrough: true
-```
-
-Configure the collector as usual. No special configuration changes are needed to
-be made on the collector. It will automatically detect the IP address of spans,
-logs and metrics sent by the agents as well as directly by other services or
-pods.
+|Parameters|Value|
+|---|---|
+|`k8sattributes.passthrough`|`true`|
 
 Tasks:
 - Opentelemetry DaemonSet node name environment export.

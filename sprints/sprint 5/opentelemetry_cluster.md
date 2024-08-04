@@ -6,7 +6,7 @@ workloads.
 
 To collect all of this data, we will use the ***OpenTelemetry Collector***. The
 collector has many different tools at its disposal which allow it to efficiently
-collect all this data and enchance it in meaningful ways.
+collect all this data and enhance it in meaningful ways.
 
 To collect all the data, we will need ***two installations*** of the collector, `DaemonSet` and `Deployment`.
 - The `Daemonset` installation of the collector will be used to collect
@@ -15,7 +15,67 @@ To collect all the data, we will need ***two installations*** of the collector, 
 - The `Deployment` installation of the collector will be used to collect metrics
   for the cluster and events.
 
+## `DaemonSet`
+
+`DaemonSet` is a type of deploymnet that ensures that all (or some) `Nodes` run
+a copy of `Pod`. As nodes are added to the cluster, those `Pods` are garbage
+collected. Deleting a `DaemonSet` will clean up the `Pods` it created.
+
+Some typical uses of a `DaemonSet` are:
+- Running a cluster storage daemon on every `Node`.
+- Running a logs collection daemon on every `Node`.
+- Running a node monitoring daemon on every `Node`.
+
+In a simple case, one `DaemonSet`, covering all `nodes`, would be used for each
+type of daemon. A more complex setup might use multiple `DaemonSet`s for a
+single type of daemon, but with different flags/or different memory and cpu
+requests for different hardware types.
+
+### `DaemonSet` requirements
+
+As with all other `k8s` config, a `DaemonSet` needs:
+- `apiVersion`
+- `kind`
+- `metadata`
+- Valid DNS subdomain name.
+- `.spec` section
+
+#### `Pod` Template
+
+The `.spec.template` is a `Pod` template. It has exactly the same schema as a
+`Pod`, except it is nested and does not have an `apiVersion` or `kind`. In
+addition to required fields for a `Pod`, a `Pod` template in a `DaemonSet` has
+to specify appropriate labels. A `Pod` template in a `DaemonSet` must have a
+`RestartPolicy` equal to `Always`, or be unspecified, which defaults to `Always.` 
+
+#### `Pod` Selector
+
+The `.spec.selector` field is a `Pod` selector. It works the same as the
+`.spec.selector` of a `Job`. `Pod` selector must be specified to match the
+labels of the `.spec.template`. Also, once a `DaemonSet` is created, its
+`.spec.selector` can not be mutated. Mutating the pod selector can lead to the
+unintentional orphaning of `Pod`s, and could be confusing to troubleshoot.
+
+The `.spec.selector` is an object consisting of two fields:
+- `matchLabeOls` works the same as the `spec.selector` of a replication
+  controller.
+- `matchExpression` allows to build more sophisticated selectors by specifying
+  key, list of values and an operator that relates the key and values.
+
+When the two are specified, the result is `AND`ed. The `.spec.selector` must
+match the `.spec.template.metadatal.labels`. Config with these two not matching
+will be rejected by the API.
+
+#### Running `Pods` on the selected `Nodes`
+
+If the `.spec.template.spec.nodeSelector`, then the `DaemonSet` controller will
+create `Pods` on nodes which match that `Node` selector. Likewise, if
+`.spec.template.spec.affinity` is specified, the `DaemonSet` controller will
+create `Pods` on nodes which match that node affinity. If neither are specified,
+then the `DaemonSet` controller will create `Pods` on all nodes.
+
 ## `DaemonSet` Collector
+
 
 The first step to collect `k8s` telemetry is to deploy a `DaemonSet` instance of
 the OpenTelemetry Collector to gather telemetry related `nodes` and workloads
@@ -43,3 +103,11 @@ The instance of the Collector will use the following components:
   events.
 - `Kubernetes Objects Receiver` to collect objects, such as events from the 
   `k8s` API server.
+
+Tasks:
+- Implement OpenTelemetry DaemonSet manifest 
+- Implement OpenTelemetry ConfigMap manifest for DaemonSet deployment
+- Implement OpenTelemetry Service manifest for DaemonSet deployment
+- Implement OpenTelemetry ReplicaSet manifest
+- Implement OpenTelemetry ConfigMap manifest for ReplicaSet deployment
+- Implement OpenTelemetry Service manifest for ReplicaSet deployment
